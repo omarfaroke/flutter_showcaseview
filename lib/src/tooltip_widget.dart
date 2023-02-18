@@ -24,7 +24,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 
-import 'enum.dart';
+import '../showcaseview.dart';
 import 'get_position.dart';
 import 'measure_size.dart';
 
@@ -59,6 +59,18 @@ class ToolTipWidget extends StatefulWidget {
   final TooltipPosition? tooltipPosition;
   final EdgeInsets? titlePadding;
   final EdgeInsets? descriptionPadding;
+  final bool showNextButton;
+  final bool showSkipButton;
+  final String nextButtonText;
+  final String skipButtonText;
+  final TextStyle? nextButtonTextStyle;
+  final TextStyle? skipButtonTextStyle;
+  final VoidCallback? onNextButtonTap;
+  final VoidCallback? onSkipButtonTap;
+  final EdgeInsetsGeometry? nextAndSkipButtonPadding;
+  final bool showNavigationCounter;
+  final TextStyle? navigationCounterTextStyle;
+  final String navigationCounterText;
 
   const ToolTipWidget({
     Key? key,
@@ -90,6 +102,18 @@ class ToolTipWidget extends StatefulWidget {
     this.tooltipPosition,
     this.titlePadding,
     this.descriptionPadding,
+    this.showNextButton = false,
+    this.showSkipButton = false,
+    this.nextButtonText = 'Next',
+    this.skipButtonText = 'Skip',
+    this.nextButtonTextStyle,
+    this.skipButtonTextStyle,
+    this.onNextButtonTap,
+    this.onSkipButtonTap,
+    this.nextAndSkipButtonPadding = const EdgeInsets.symmetric(vertical: 8),
+    this.showNavigationCounter = false,
+    this.navigationCounterTextStyle,
+    this.navigationCounterText = '',
   }) : super(key: key);
 
   @override
@@ -154,6 +178,8 @@ class _ToolTipWidgetState extends State<ToolTipWidget>
             (widget.descriptionPadding?.right ?? 0) +
             (widget.descriptionPadding?.left ?? 0));
     var maxTextWidth = max(titleLength, descriptionLength);
+
+    maxTextWidth = max(maxTextWidth, _getBottomButtonsTextLength());
     if (maxTextWidth > widget.screenSize!.width - tooltipScreenEdgePadding) {
       tooltipWidth = widget.screenSize!.width - tooltipScreenEdgePadding;
     } else {
@@ -236,6 +262,40 @@ class _ToolTipWidgetState extends State<ToolTipWidget>
 
   final GlobalKey _customContainerKey = GlobalKey();
   final ValueNotifier<double> _customContainerWidth = ValueNotifier<double>(1);
+
+  /// This method is used to get the size of the button text (next, skip, counter)
+  num _getBottomButtonsTextLength() {
+    num length = 0;
+    TextStyle style = Theme.of(context)
+        .textTheme
+        .subtitle2!
+        .merge(TextStyle(color: widget.textColor));
+
+    if (widget.showNextButton) {
+      length +=
+          _textSize(widget.nextButtonText, widget.nextButtonTextStyle ?? style)
+              .width;
+
+      length += 4 * 2; // 4 is the padding of the button
+    }
+
+    if (widget.showSkipButton) {
+      length +=
+          _textSize(widget.skipButtonText, widget.skipButtonTextStyle ?? style)
+              .width;
+      length += 4 * 2; // 4 is the padding of the button
+    }
+
+    if (widget.showNavigationCounter) {
+      length += _textSize(widget.navigationCounterText,
+              widget.navigationCounterTextStyle ?? style)
+          .width;
+    }
+
+    length += widget.tooltipPadding!.right + widget.tooltipPadding!.left;
+
+    return length;
+  }
 
   @override
   void initState() {
@@ -449,6 +509,9 @@ class _ToolTipWidgetState extends State<ToolTipWidget>
                                               ),
                                     ),
                                   ),
+                                  if (widget.showNextButton ||
+                                      widget.showSkipButton)
+                                    _buildBottomRow(context),
                                 ],
                               ),
                             ),
@@ -500,6 +563,59 @@ class _ToolTipWidgetState extends State<ToolTipWidget>
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildBottomRow(BuildContext context) {
+    return Container(
+      padding: widget.nextAndSkipButtonPadding,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          if (widget.showNextButton)
+            InkWell(
+              onTap: widget.onNextButtonTap,
+              child: Padding(
+                padding: const EdgeInsets.all(4.0),
+                child: Text(
+                  widget.nextButtonText,
+                  style: widget.nextButtonTextStyle ??
+                      Theme.of(context)
+                          .textTheme
+                          .subtitle2!
+                          .merge(TextStyle(color: widget.textColor)),
+                ),
+              ),
+            ),
+          if (widget.showNavigationCounter)
+            Expanded(
+              child: Text(
+                widget.navigationCounterText,
+                style: widget.navigationCounterTextStyle ??
+                    Theme.of(context)
+                        .textTheme
+                        .subtitle2!
+                        .merge(TextStyle(color: widget.textColor)),
+                textAlign: TextAlign.center,
+              ),
+            ),
+          if (widget.showSkipButton)
+            InkWell(
+              onTap: widget.onSkipButtonTap,
+              child: Padding(
+                padding: const EdgeInsets.all(4.0),
+                child: Text(
+                  widget.skipButtonText,
+                  style: widget.skipButtonTextStyle ??
+                      Theme.of(context)
+                          .textTheme
+                          .subtitle2!
+                          .merge(TextStyle(color: widget.textColor)),
+                ),
+              ),
+            ),
+        ],
+      ),
     );
   }
 

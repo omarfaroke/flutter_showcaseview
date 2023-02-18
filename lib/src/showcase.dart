@@ -232,6 +232,33 @@ class Showcase extends StatefulWidget {
   /// Provides padding around the description. Default padding is zero.
   final EdgeInsets? descriptionPadding;
 
+  /// Show next button on showcase
+  final bool showNextButton;
+
+  /// Show skip button on showcase
+  final bool showSkipButton;
+
+  /// Text for next button
+  final String nextButtonText;
+
+  /// Text for skip button
+  final String skipButtonText;
+
+  /// Text style for next button
+  final TextStyle? nextButtonTextStyle;
+
+  /// Text style for skip button
+  final TextStyle? skipButtonTextStyle;
+
+  /// Padding for next and skip button
+  final EdgeInsetsGeometry? nextAndSkipButtonPadding;
+
+  /// Show navigation counter on showcase
+  final bool showNavigationCounter;
+
+  /// Text style for navigation counter
+  final TextStyle? navigationCounterTextStyle;
+
   const Showcase({
     required this.key,
     required this.child,
@@ -273,6 +300,15 @@ class Showcase extends StatefulWidget {
     this.tooltipPosition,
     this.titlePadding,
     this.descriptionPadding,
+    this.showNextButton = false,
+    this.showSkipButton = false,
+    this.nextButtonText = "Next",
+    this.skipButtonText = "Skip",
+    this.nextButtonTextStyle,
+    this.skipButtonTextStyle,
+    this.nextAndSkipButtonPadding,
+    this.showNavigationCounter = false,
+    this.navigationCounterTextStyle,
   })  : height = null,
         width = null,
         container = null,
@@ -328,7 +364,16 @@ class Showcase extends StatefulWidget {
         titlePadding = null,
         descriptionPadding = null,
         assert(overlayOpacity >= 0.0 && overlayOpacity <= 1.0,
-            "overlay opacity must be between 0 and 1.");
+            "overlay opacity must be between 0 and 1."),
+        showNextButton = false,
+        showSkipButton = false,
+        nextButtonText = "Next",
+        skipButtonText = "Skip",
+        nextButtonTextStyle = null,
+        skipButtonTextStyle = null,
+        nextAndSkipButtonPadding = null,
+        showNavigationCounter = false,
+        navigationCounterTextStyle = null;
 
   @override
   State<Showcase> createState() => _ShowcaseState();
@@ -343,6 +388,13 @@ class _ShowcaseState extends State<Showcase> {
   GetPosition? position;
 
   ShowCaseWidgetState get showCaseWidgetState => ShowCaseWidget.of(context);
+
+  String get navigationCounterText {
+    int totalSteps = showCaseWidgetState.ids?.length ?? 0;
+    int currentStep = showCaseWidgetState.activeWidgetId ?? 0;
+
+    return "${currentStep + 1} / $totalSteps";
+  }
 
   @override
   void didChangeDependencies() {
@@ -552,6 +604,18 @@ class _ShowcaseState extends State<Showcase> {
             tooltipPosition: widget.tooltipPosition,
             titlePadding: widget.titlePadding,
             descriptionPadding: widget.descriptionPadding,
+            showNextButton: widget.showNextButton,
+            showSkipButton: widget.showSkipButton,
+            nextButtonText: widget.nextButtonText,
+            skipButtonText: widget.skipButtonText,
+            nextButtonTextStyle: widget.nextButtonTextStyle,
+            skipButtonTextStyle: widget.skipButtonTextStyle,
+            nextAndSkipButtonPadding: widget.nextAndSkipButtonPadding,
+            onNextButtonTap: _nextIfAny,
+            onSkipButtonTap: () => showCaseWidgetState.skip(),
+            showNavigationCounter: widget.showNavigationCounter,
+            navigationCounterTextStyle: widget.navigationCounterTextStyle,
+            navigationCounterText: navigationCounterText,
           ),
         ],
       ],

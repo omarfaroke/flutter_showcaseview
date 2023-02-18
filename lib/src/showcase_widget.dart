@@ -27,6 +27,9 @@ import '../showcaseview.dart';
 class ShowCaseWidget extends StatefulWidget {
   final Builder builder;
 
+  /// Triggered when user skips the showcase.
+  final VoidCallback? onSkip;
+
   /// Triggered when all the showcases are completed.
   final VoidCallback? onFinish;
 
@@ -85,6 +88,7 @@ class ShowCaseWidget extends StatefulWidget {
 
   const ShowCaseWidget({
     required this.builder,
+    this.onSkip,
     this.onFinish,
     this.onStart,
     this.onComplete,
@@ -115,12 +119,22 @@ class ShowCaseWidget extends StatefulWidget {
     }
   }
 
+  static ShowCaseWidgetState? maybeOf(BuildContext context) {
+    final state = context.findAncestorStateOfType<ShowCaseWidgetState>();
+    if (state != null) {
+      return state;
+    } else {
+      return null;
+    }
+  }
+
   @override
   ShowCaseWidgetState createState() => ShowCaseWidgetState();
 }
 
 class ShowCaseWidgetState extends State<ShowCaseWidget> {
   List<GlobalKey>? ids;
+
   int? activeWidgetId;
 
   /// These properties are only here so that it can be accessed by
@@ -208,6 +222,17 @@ class ShowCaseWidgetState extends State<ShowCaseWidget> {
           _cleanupAfterSteps();
           widget.onFinish?.call();
         }
+      });
+    }
+  }
+
+  /// Skips the entire showcase view
+  void skip() {
+    if (ids != null && mounted) {
+      setState(() {
+        _onComplete();
+        _cleanupAfterSteps();
+        widget.onSkip?.call();
       });
     }
   }
